@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机结果生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 150%; /* 调整整体字体大小为原来的150% */
+        }
+        .result-container {
+            margin: 30px auto;
+        }
+        .result {
+            font-size: 3rem; /* 原2rem增加50% */
+            font-weight: bold;
+            display: inline-block;
+            width: 150px; /* 原100px增加50% */
+            height: 150px; /* 原100px增加50% */
+            line-height: 150px; /* 原100px增加50% */
+            border-radius: 50%;
+            text-align: center;
+            border: 7.5px solid transparent; /* 原5px增加50% */
+            color: white;
+            margin-bottom: 15px; /* 原10px增加50% */
+        }
+        .btn {
+            margin-top: 30px; /* 原20px增加50% */
+            padding: 15px 30px; /* 原10px 20px增加50% */
+            font-size: 2.25rem; /* 原1.5rem增加50% */
+            border: none;
+            border-radius: 7.5px; /* 原5px增加50% */
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+        .btn:active {
+            filter: brightness(85%);
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .start-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .profit-btn {
+            background-color: green;
+            color: white;
+        }
+        .loss-btn {
+            background-color: red;
+            color: white;
+        }
+        .draw-btn {
+            background-color: blue;
+            color: white;
+        }
+        .reset-btn {
+            background-color: orange; /* 设置“重置”按钮为橙色 */
+            color: white;
+        }
+        .click-count {
+            margin-top: 15px; /* 原10px增加50% */
+            font-size: 1.8rem; /* 原1.2rem增加50% */
+            color: #555;
+        }
+        .profit-loss-btns {
+            margin-top: 30px; /* 原20px增加50% */
+            display: flex;
+            justify-content: center;
+            gap: 15px; /* 原10px增加50% */
+        }
+        .profit-loss-text {
+            margin-top: 15px; /* 原10px增加50% */
+            font-size: 1.5rem; /* 原1rem增加50% */
+            color: #333;
+        }
+        .color-counts {
+            margin-top: 15px; /* 原10px增加50% */
+            display: flex;
+            justify-content: center;
+            gap: 15px; /* 原10px增加50% */
+        }
+        .win-rate {
+            margin-top: 30px; /* 原20px增加50% */
+            font-size: 1.8rem; /* 原1.2rem增加50% */
+            font-weight: bold;
+            color: black;
+        }
+        .win-rate .green {
+            color: lightgreen;
+        }
+        .win-rate .red {
+            color: lightcoral;
+        }
+        .red {
+            border-color: red;
+            background-color: red;
+        }
+        .blue {
+            border-color: blue;
+            background-color: blue;
+        }
+        .green {
+            border-color: green;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="result" id="result">点击开始</div>
+    </div>
+    <button class="btn start-btn" id="startButton" onclick="generateResult()">开始</button>
+    <div class="click-count" id="clickCount">点击次数：0</div>
+    <div class="color-counts">
+        <div style="color: red;">红的次数：<span id="redCount">0 (0.00%)</span></div>
+        <div style="color: blue;">蓝的次数：<span id="blueCount">0 (0.00%)</span></div>
+        <div style="color: green;">绿的次数：<span id="greenCount">0 (0.00%)</span></div>
+    </div>
+    <div class="profit-loss-btns">
+        <button class="btn profit-btn" id="profitButton" onclick="recordProfit()" disabled>盈利</button>
+        <button class="btn loss-btn" id="lossButton" onclick="recordLoss()" disabled>亏损</button>
+        <button class="btn draw-btn" id="drawButton" onclick="recordDraw()" disabled>平局</button>
+    </div>
+    <div class="profit-loss-text">
+        <div>盈利次数：<span id="profitCount">0</span></div>
+        <div>亏损次数：<span id="lossCount">0</span></div>
+        <div>平局次数：<span id="drawCount">0</span></div>
+    </div>
+    <div class="win-rate">
+        胜率：<span id="winRate" class="red">0.00%</span>
+    </div>
+    <button class="btn reset-btn" id="resetButton" onclick="resetAll()">重置 / Reset</button>
+
+    <script>
+        let clickCount = 0;
+        let redCount = 0;
+        let blueCount = 0;
+        let greenCount = 0;
+        let profitCount = 0;
+        let lossCount = 0;
+        let drawCount = 0;
+
+        function generateResult() {
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "";
+            resultDiv.className = "result";
+
+            setTimeout(() => {
+                const outcomes = [
+                    { name: "红", colorClass: "red", probability: 45.86 },
+                    { name: "蓝", colorClass: "blue", probability: 44.62 },
+                    { name: "绿", colorClass: "green", probability: 9.52 },
+                ];
+
+                const random = Math.random() * 100;
+                let accumulated = 0;
+                let selectedOutcome = outcomes[0];
+
+                for (const outcome of outcomes) {
+                    accumulated += outcome.probability;
+                    if (random <= accumulated) {
+                        selectedOutcome = outcome;
+                        break;
+                    }
+                }
+
+                resultDiv.textContent = selectedOutcome.name;
+                resultDiv.className = `result ${selectedOutcome.colorClass}`;
+
+                clickCount++;
+                document.getElementById("clickCount").textContent = `点击次数：${clickCount}`;
+
+                if (selectedOutcome.name === "红") redCount++;
+                else if (selectedOutcome.name === "蓝") blueCount++;
+                else if (selectedOutcome.name === "绿") greenCount++;
+
+                updateColorCounts();
+                toggleButtonState("startButton", false);
+                toggleButtonState("profitButton", true);
+                toggleButtonState("lossButton", true);
+                toggleButtonState("drawButton", true);
+            }, 300);
+        }
+
+        function updateColorCounts() {
+            const redPercent = ((redCount / clickCount) * 100).toFixed(2);
+            const bluePercent = ((blueCount / clickCount) * 100).toFixed(2);
+            const greenPercent = ((greenCount / clickCount) * 100).toFixed(2);
+
+            document.getElementById("redCount").textContent = `${redCount} (${redPercent}%)`;
+            document.getElementById("blueCount").textContent = `${blueCount} (${bluePercent}%)`;
+            document.getElementById("greenCount").textContent = `${greenCount} (${greenPercent}%)`;
+        }
+
+        function recordProfit() {
+            profitCount++;
+            document.getElementById("profitCount").textContent = profitCount;
+            updateWinRate();
+            resetButtonStates();
+        }
+
+        function recordLoss() {
+            lossCount++;
+            document.getElementById("lossCount").textContent = lossCount;
+            updateWinRate();
+            resetButtonStates();
+        }
+
+        function recordDraw() {
+            drawCount++;
+            document.getElementById("drawCount").textContent = drawCount;
+            resetButtonStates();
+        }
+
+        function updateWinRate() {
+            const total = profitCount + lossCount + drawCount;
+            const winRateDiv = document.getElementById("winRate");
+
+            if (total > 0) {
+                const winRate = (profitCount / total) * 100;
+                const formattedWinRate = winRate.toFixed(2) + "%";
+                winRateDiv.textContent = formattedWinRate;
+
+                if (winRate > 50) {
+                    winRateDiv.className = "win-rate green";
+                } else {
+                    winRateDiv.className = "win-rate red";
+                }
+            } else {
+                winRateDiv.textContent = "0.00%";
+                winRateDiv.className = "win-rate red";
+            }
+        }
+
+        function toggleButtonState(buttonId, isEnabled) {
+            document.getElementById(buttonId).disabled = !isEnabled;
+        }
+
+        function resetButtonStates() {
+            toggleButtonState("profitButton", false);
+            toggleButtonState("lossButton", false);
+            toggleButtonState("drawButton", false);
+            toggleButtonState("startButton", true);
+        }
+
+        function resetAll() {
+            clickCount = redCount = blueCount = greenCount = profitCount = lossCount = drawCount = 0;
+
+            document.getElementById("clickCount").textContent = "点击次数：0";
+            document.getElementById("redCount").textContent = "0 (0.00%)";
+            document.getElementById("blueCount").textContent = "0 (0.00%)";
+            document.getElementById("greenCount").textContent = "0 (0.00%)";
+            document.getElementById("profitCount").textContent = "0";
+            document.getElementById("lossCount").textContent = "0";
+            document.getElementById("drawCount").textContent = "0";
+            document.getElementById("winRate").textContent = "0.00%";
+            document.getElementById("winRate").className = "win-rate red";
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = "点击开始";
+            resultDiv.className = "result";
+
+            resetButtonStates();
+        }
+    </script>
+</body>
+</html>
